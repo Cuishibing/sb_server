@@ -10,39 +10,40 @@
 #include <sb_client.h>
 #include <sys/socket.h>
 #include <sb_handle_worker.h>
+#include <sb_server.h>
 
 int sb_init_read_worker(sb_read_worker *read_worker){
     if(read_worker == NULL || run == NULL){
-        return 0;
+        return fail;
     }
     read_worker->buffer = (char*)calloc(buffer_length,sizeof(char));
     if(read_worker->buffer == NULL){
-        fprintf(stderr,"内存不足!\n");
-        return 0;
+        error("内存不足!\n");
+        return fail;
     }
     if(read_worker_event_queue == NULL){
         read_worker_event_queue = (sb_queue*)malloc(sizeof(sb_queue));
         if(read_worker_event_queue == NULL){
-            fprintf(stderr,"内存不足!");
-            return 0;
+            error("内存不足!");
+            return fail;
         }
-        if(!sb_init_queue(read_worker_event_queue)){
-            return 0;
+        if(fail == sb_init_queue(read_worker_event_queue)){
+            return fail;
         }
     }
     if(read_worker_event_queue_mutex == NULL){
         read_worker_event_queue_mutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
         if(read_worker_event_queue_mutex == NULL){
-            fprintf(stderr,"内存不足!");
-            return 0;
+            error("内存不足!\n");
+            return fail;
         }
         pthread_mutex_init(read_worker_event_queue_mutex,NULL);//TODO:pthread_mutexattr_t
     }
     if(read_worker_event_queue_cond == NULL){
         read_worker_event_queue_cond = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));
         if(read_worker_event_queue_cond == NULL){
-            fprintf(stderr,"内存不足!");
-            return 0;
+            error("内存不足!\n");
+            return fail;
         }
         pthread_cond_init(read_worker_event_queue_cond,NULL);//TODO:pthread_condattr_t
     }
@@ -53,7 +54,7 @@ static void* run (void *args){
     sb_element client_store;
     sb_read_worker *thread_holder = (sb_read_worker*)args;
     if(thread_holder == NULL){
-        fprintf(stderr,"thread_holder is null!");
+        error("thread_holder is null!\n");
         return NULL;
     }
     /*
@@ -61,7 +62,7 @@ static void* run (void *args){
      * */
     while(!thread_holder->worker.is_exit){
         pthread_mutex_lock(read_worker_event_queue_mutex);
-        while(!sb_dequeue(read_worker_event_queue,&client_store)){
+        while(fail == sb_dequeue(read_worker_event_queue,&client_store)){
             pthread_cond_wait(read_worker_event_queue_cond,read_worker_event_queue_mutex);
         }
 
@@ -72,8 +73,8 @@ static void* run (void *args){
         int len = 0;
         do{
             len = read(current_client->socket_fd,thread_holder->buffer,buffer_length);
-            if(!sb_put_data_cache(current_client->request_data,thread_holder->buffer)){
-                fprintf(stderr,"store data error!\n");
+            if(fail == sb_put_data_cache(current_client->request_data,thread_holder->buffer)){
+                error("store data error!\n");
                 return NULL;
             }
         }while(len != -1 && len != 0);
@@ -85,13 +86,13 @@ static void* run (void *args){
 
 int sb_add_read_event(sb_client *client){
     if(client == NULL){
-        return 0;
+        return fail;
     }
     sb_element e;
     e.value = client;
     //TODO:入队也要同步
-    if(sb_enqueue(read_worker_event_queue,e)){
+    if(success == sb_enqueue(read_worker_event_queue,e)){
         pthread_cond_signal(read_worker_event_queue_cond);
-        return 1;
-    }else return 0;
+        return success;
+    }else return fail;
 }

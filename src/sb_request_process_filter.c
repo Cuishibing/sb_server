@@ -3,22 +3,23 @@
 //
 
 #include <stdlib.h>
+#include <sb_server.h>
 #include "sb_request_process_filter.h"
 
 int sb_set_request_process_filters(sb_arraylist *filters){
     if(filters == NULL){
-        return 0;
+        return fail;
     }
     if(request_process_filters == NULL){
         request_process_filters = filters;
-        return 1;
+        return success;
     }
-    return 0;
+    return fail;
 }
 
 int sb_add_method_req_process_filters(FILTER){
     if(filter == NULL){
-        return 0;
+        return fail;
     }
     sb_element element;
     element.value = filter;
@@ -29,12 +30,12 @@ int sb_init_request_process_filters(){
     if(request_process_filters == NULL){
         request_process_filters = (sb_arraylist*)malloc(sizeof(sb_arraylist));
         if(request_process_filters == NULL){
-            fprintf(stderr,"内存不足!");
-            return 0;
+            error("内存不足!\n");
+            return fail;
         }
         return sb_init_arraylist(request_process_filters,5);
     }
-    return 1;
+    return success;
 }
 
 sb_arraylist* sb_get_request_process_filters(){

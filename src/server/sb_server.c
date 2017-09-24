@@ -13,13 +13,13 @@
 
 int sb_init_server(const sb_server_context *context, int port){
     if(context == NULL || port <= 0){
-        return 0;
+        return fail;
     }
     if(server == NULL){
         server = (sb_server*)malloc(sizeof(sb_server));
         if(server == NULL){
-            fprintf(stderr,"内存不足!\n");
-            return 0;
+            error("内存不足!\n");
+            return fail;
         }
         server->is_exit = 0;
         server->context = context;
@@ -34,8 +34,8 @@ int sb_init_server(const sb_server_context *context, int port){
         }
         server->events = (struct epoll_event*)malloc(sizeof(max_epoll_events_num));
         if(server->events == NULL){
-            fprintf(stderr,"内存不足!\n");
-            return 0;
+            error("内存不足!\n");
+            return fail;
         }
         server->max_events_nums = max_epoll_events_num;
 
@@ -71,40 +71,41 @@ int sb_init_server(const sb_server_context *context, int port){
 
         sb_handler_worker *handler_worker = (sb_handler_worker*)malloc(sizeof(sb_handler_worker));
         sb_init_handle_worker(handler_worker);
-        return 1;
+        return success;
 
     }
 }
 
 int sb_start_server(){
     if(server == NULL){
-        fprintf(stderr,"server is null!\n");
-        return 0;
+        error("server is null!\n");
+        return fail;
     }
     server->server_socket = sb_init_server_socket(server->port,NULL);
-    if(server->server_socket == -1){
-        fprintf(stderr,"socket获取失败!\n");
-        return 0;
+    if(server->server_socket == fail){
+        error("socket获取失败!\n");
+        return fail;
     }
-    if(!sb_set_socket_noblock(server->server_socket)){
-        fprintf(stderr,"设置非锁socket失败!\n");
+    if(fail == sb_set_socket_noblock(server->server_socket)){
+        error("设置非锁socket失败!\n");
         close(server->server_socket);
-        return 0;
+        return fail;
     }
     if(listen(server->server_socket,server->back_log) < 0){
-        fprintf(stderr,"listen失败!\n");
+        error("listen失败!\n");
         close(server->server_socket);
-        return 0;
+        return fail;
     }
     server->epoll_fd = epoll_create1(0);
     if(server->epoll_fd < 0){
-        fprintf(stderr,"初始化epoll失败!\n");
+        error("初始化epoll失败!\n");
         close(server->server_socket);
-        return 0;
+        return fail;
     }
-    if(!sb_start_dispatcher()){
-        fprintf(stderr,"启动dispatcher失败!\n");
+    if(fail == sb_start_dispatcher()){
+        error("启动dispatcher失败!\n");
         close(server->server_socket);
+        return fail;
     }
 }
 

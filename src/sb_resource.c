@@ -7,25 +7,26 @@
 #include <memory.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sb_server.h>
 
 sb_resource* init_resource(const char* path,const char* name){
     size_t length_name = strlen(name);
     FILE *resource_file = fopen(path,"r");
     if(resource_file == NULL){
-        fprintf(stderr,"资源打开失败!");
+        error("资源打开失败!\n");
         return NULL;
     }
     sb_resource *result = (sb_resource*)malloc(sizeof(sb_resource));
     if(result == NULL){
-        fprintf(stderr,"内存不足!");
+        error("内存不足!\n");
         return NULL;
     }else{
-        if(!sb_init_data_cache(&result->data)){
+        if(fail == sb_init_data_cache(&result->data)){
             return NULL;
         }
         result->name = (char*)malloc(length_name + 1);
         if(result->name == NULL){
-            fprintf(stderr,"内存不足!");
+            error("内存不足!\n");
             return NULL;
         }
         strcpy(result->name,name);
@@ -34,10 +35,10 @@ sb_resource* init_resource(const char* path,const char* name){
     size_t length = 0;
     length = fread(buffer,sizeof(char),BUFFER_SIZE - 1,resource_file);
     while(length != 0 && length != -1){
-        if(sb_put_data_cache(&result->data,buffer)){
+        if(success == sb_put_data_cache(&result->data,buffer)){
             length = fread(buffer,sizeof(char),BUFFER_SIZE - 1,resource_file);
         }else{
-            fprintf(stderr,"读取资源错误!");
+            error("读取资源错误!\n");
             return NULL;
         }
     }
@@ -47,7 +48,7 @@ sb_resource* init_resource(const char* path,const char* name){
 
 sb_resource* sb_get_resource(const char* root_path,const char* name){
     if(root_path == NULL || name == NULL){
-        fprintf(stderr,"bad resource name and path!");
+        error("bad resource name and path!\n");
         return NULL;
     }
     sb_element element;
@@ -57,7 +58,7 @@ sb_resource* sb_get_resource(const char* root_path,const char* name){
         char *resource_path = (char*)malloc(length_name + length_root_path + 1);
         char *temp = strcat(resource_path,root_path);
         strcat(temp,name);
-        if(!sb_get_map(sb_resource_cache,resource_path,(length_name + length_root_path),&element)){
+        if(fail == sb_get_map(sb_resource_cache,resource_path,(length_name + length_root_path),&element)){
             //还没有缓存
             sb_resource* resource = init_resource(resource_path,name);
             if(resource == NULL){
@@ -73,13 +74,13 @@ sb_resource* sb_get_resource(const char* root_path,const char* name){
     }else{
         sb_resource_cache = (sb_map*)malloc(sizeof(sb_map));
         if(sb_resource_cache == NULL){
-            fprintf(stderr,"内存不足!");
+            error("内存不足!\n");
             return NULL;
         }else{
-            if(sb_init_map(sb_resource_cache)){
+            if(success == sb_init_map(sb_resource_cache)){
                 return sb_get_resource(root_path,name);
             }else{
-                fprintf(stderr,"初始化map失败!");
+                error("初始化map失败!\n");
                 return NULL;
             }
         }

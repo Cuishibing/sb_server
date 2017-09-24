@@ -10,6 +10,7 @@
 #include <sb_request_process_filter.h>
 #include <sb_request.h>
 #include <sb_key_value.h>
+#include <sb_server.h>
 #include "sb_request.h"
 #include "sb_client.h"
 #include "sb_http.h"
@@ -22,7 +23,6 @@ void* sb_parse_http_start(sb_client *client, sb_request *request, void *args){
     char *second_cursor = NULL;
     second_cursor = strstr(first_cursor," ");
     if(second_cursor == NULL){
-        fprintf(stderr,"bad request");
         return NULL;
     }
     char *method = (char*)calloc((second_cursor - first_cursor + 1),sizeof(char));
@@ -34,7 +34,7 @@ void* sb_parse_http_start(sb_client *client, sb_request *request, void *args){
 
     second_cursor = strstr(first_cursor," ");
     if(second_cursor == NULL){
-        fprintf(stderr,"bad request");
+        error("bad request\n");
         return NULL;
     }
     char *url = (char*)calloc((second_cursor - first_cursor + 1),sizeof(char));
@@ -47,7 +47,7 @@ void* sb_parse_http_start(sb_client *client, sb_request *request, void *args){
 
     second_cursor = strstr(first_cursor,"\r\n");
     if(second_cursor == NULL){
-        fprintf(stderr,"bad request");
+        error("bad request\n");
         return NULL;
     }
     char *http_version = (char*)calloc((second_cursor - first_cursor + 1),sizeof(char));
@@ -66,7 +66,7 @@ void* sb_parse_http_head(sb_client *client,sb_request *request,void *args){
     }
     sb_key_value *heads = (sb_key_value*)malloc(sizeof(sb_key_value));
     if(heads == NULL){
-        fprintf(stderr,"内存不足!");
+        error("内存不足!\n");
         return NULL;
     }
     if(!sb_init_key_value(heads)){
@@ -98,7 +98,7 @@ int sb_init_http_filters(){
         sb_add_method_req_process_filters(sb_parse_http_start);
         sb_add_method_req_process_filters(sb_parse_http_head);
         sb_add_method_req_process_filters(sb_parse_http_body);
-        return 1;
+        return success;
     }
-    return 0;
+    return fail;
 }

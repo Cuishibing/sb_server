@@ -9,34 +9,35 @@
 #include <pthread.h>
 #include <sb_request_process_filter.h>
 #include <sb_request.h>
+#include <sb_server.h>
 
 int sb_init_handle_worker(sb_handler_worker *handle_worker){
     if(handle_worker == NULL || run == NULL){
-        return 0;
+        return fail;
     }
     if(handle_worker_event_queue == NULL){
         handle_worker_event_queue = (sb_queue*)malloc(sizeof(sb_queue));
         if(handle_worker_event_queue == NULL){
-            fprintf(stderr,"内存不足!");
-            return 0;
+            error("内存不足!\n");
+            return fail;
         }
-        if(!sb_init_queue(handle_worker_event_queue)){
-            return 0;
+        if(fail == sb_init_queue(handle_worker_event_queue)){
+            return fail;
         }
     }
     if(handle_worker_event_queue_mutex == NULL){
         handle_worker_event_queue_mutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
         if(handle_worker_event_queue_mutex == NULL){
-            fprintf(stderr,"内存不足!");
-            return 0;
+            error("内存不足!\n");
+            return fail;
         }
         pthread_mutex_init(handle_worker_event_queue_mutex,NULL);//TODO:pthread_mutexattr_t
     }
     if(handle_worker_event_queue_cond == NULL){
         handle_worker_event_queue_cond = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));
         if(handle_worker_event_queue_cond == NULL){
-            fprintf(stderr,"内存不足!");
-            return 0;
+            error("内存不足!\n");
+            return fail;
         }
         pthread_cond_init(handle_worker_event_queue_cond,NULL);//TODO:pthread_condattr_t
     }
@@ -45,22 +46,22 @@ int sb_init_handle_worker(sb_handler_worker *handle_worker){
 
 int sb_add_handle_event(sb_client *client){
     if(client == NULL){
-        return 0;
+        return fail;
     }
     sb_element e;
     e.value = client;
     //TODO:入队也要同步
-    if(sb_enqueue(handle_worker_event_queue,e)){
+    if(success == sb_enqueue(handle_worker_event_queue,e)){
         pthread_cond_signal(handle_worker_event_queue_cond);
-        return 1;
-    }else return 0;
+        return success;
+    }else return fail;
 }
 
 static void* run (void *args){
     sb_element client_store;
     sb_handler_worker *thread_holder = (sb_handler_worker*)args;
     if(thread_holder == NULL){
-        fprintf(stderr,"thread_holder is null!");
+        error("thread_holder is null!\n");
         return NULL;
     }
     /*
@@ -68,7 +69,7 @@ static void* run (void *args){
      * */
     while(!thread_holder->worker.is_exit){
         pthread_mutex_lock(handle_worker_event_queue_mutex);
-        while(!sb_dequeue(handle_worker_event_queue,&client_store)){
+        while(fail == sb_dequeue(handle_worker_event_queue,&client_store)){
             pthread_cond_wait(handle_worker_event_queue_cond,handle_worker_event_queue_mutex);
         }
         sb_client *current_client = (sb_client*)client_store.value;
@@ -80,7 +81,7 @@ static void* run (void *args){
             sb_element element;
             sb_request *request = (sb_request*)malloc(sizeof(sb_request));
             if(request == NULL){
-                fprintf(stderr,"内存不足!");
+                error("内存不足!\n");
                 return NULL;
             }
             sb_init_request(request);
@@ -99,7 +100,7 @@ static void* run (void *args){
             }
 
         }else{
-            fprintf(stderr,"request process filters is not init！");
+            error("request process filters is not init！\n");
             return NULL;
         }
 

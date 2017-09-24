@@ -6,21 +6,22 @@
 #include <sb_data_cache.h>
 #include <assert.h>
 #include <memory.h>
+#include <sb_server.h>
 #include "sb_data_cache.h"
 
 int sb_init_data_cache(sb_data_cache *cache){
     if(cache == NULL){
-        fprintf(stderr,"初始化data_cache失败!");
-        return 0;
+        error("初始化data_cache失败!\n");
+        return fail;
     }
     cache->length = 0;
     cache->size = DEFAULT_SIZE;//默认是2KB
     cache->data_poll = (char*)calloc(cache->size,sizeof(char));
     if(cache->data_poll == NULL){
-        fprintf(stderr,"内存不足!");
-        return 0;
+        error("内存不足!\n");
+        return fail;
     }
-    return 1;
+    return success;
 }
 
 static int expand_cache_size(sb_data_cache *cache){
@@ -28,21 +29,21 @@ static int expand_cache_size(sb_data_cache *cache){
     size_t new_size = cache->size + cache->size / 2;
     cache->data_poll = realloc(cache->data_poll,new_size);
     if(cache->data_poll == NULL){
-        fprintf(stderr,"内存不足!");
-        return 0;
+        error("内存不足!\n");
+        return fail;
     }
     cache->size = new_size;
-    return 1;
+    return success;
 }
 
 int sb_put_data_cache(sb_data_cache *cache,char *buffer){
     if(cache == NULL || buffer == NULL){
-        return 0;
+        return fail;
     }
     size_t buffer_len = strlen(buffer);
     while(cache->length + buffer_len > cache->size){//需要扩展
-        if(!expand_cache_size(cache)){
-            return 0;
+        if(fail == expand_cache_size(cache)){
+            return fail;
         }
     }
     char *start_point = &(cache->data_poll[cache->length]);
@@ -50,34 +51,34 @@ int sb_put_data_cache(sb_data_cache *cache,char *buffer){
         memcpy(start_point,buffer,buffer_len);
         cache->length += buffer_len;
     }else{
-        return 0;
+        return fail;
     }
-    return 1;
+    return success;
 }
 
 int sb_clear_data_cache(sb_data_cache *cache){
     if(cache == NULL){
-        return 0;
+        return fail;
     }
     cache->length = 0;
     cache->size = DEFAULT_SIZE;
     cache->data_poll = (char*)realloc(cache->data_poll,cache->size);
     if(cache->data_poll == NULL){
-        fprintf(stderr,"clear data_cache失败!");
-        return 0;
+        error("clear data_cache失败!\n");
+        return fail;
     }
-    return 1;
+    return success;
 }
 
 int sb_trim_data_cache(sb_data_cache *cache){
     if(cache == NULL){
-        return 0;
+        return fail;
     }
     cache->size = cache->length;
     cache->data_poll = (char*)realloc(cache->data_poll,cache->size);
     if(cache->data_poll == NULL){
-        fprintf(stderr,"trim data_cache失败!");
-        return 0;
+        error("trim data_cache失败!\n");
+        return fail;
     }
-    return 1;
+    return success;
 }

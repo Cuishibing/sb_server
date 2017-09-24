@@ -8,7 +8,7 @@
  * 初始化一个服务器端的socket
  * port:要监听的端口号
  * addr:点分十进制形式的ip地址，如果addr为NULL则自动分配一个本机地址
- * 返回socket的id，如果出现错误则返回-1
+ * 返回socket的id
  * */
 int sb_init_server_socket(int port,const char *addr);
 

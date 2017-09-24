@@ -7,24 +7,25 @@
 #include <memory.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include <sb_server.h>
 #include "sb_connection.h"
 int sb_init_server_socket(int port,const char *addr) {
     int server_socket_id = -1;
     struct sockaddr_in server_addr;
     //初始化server_socket
     if ((server_socket_id = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
-        fprintf(stderr,"初始化server_socket出错!\n");
-        return -1;
+        error("初始化server_socket出错!\n");
+        return fail;
     }
 
-    if (sb_init_sockaddr_in(addr, &server_addr, port) < 0)
-        return -1;
+    if (sb_init_sockaddr_in(addr, &server_addr, port) == fail)
+        return fail;
 
     //把server_addr绑定到server_socket上
     if ((bind(server_socket_id, (struct sockaddr*) &server_addr,
               sizeof(server_addr))) == -1) {
-        fprintf(stderr,"绑定server_addr到server_socket出错!\n");
-        return -1;
+        error("绑定server_addr到server_socket出错!\n");
+        return fail;
     }
     return server_socket_id;
 }
@@ -32,18 +33,18 @@ int sb_init_server_socket(int port,const char *addr) {
 int sb_init_client_socket() {
     int client_socket_id = -1;
     struct sockaddr_in client_addr;
-    if (sb_init_sockaddr_in(NULL, &client_addr, NULL) < 0)
-        return -1;
+    if (sb_init_sockaddr_in(NULL, &client_addr, NULL) == fail)
+        return fail;
     //初始化client_socket
     if ((client_socket_id = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
-        fprintf(stderr,"初始化client_socket出错!\n");
-        return -1;
+        error("初始化client_socket出错!\n");
+        return fail;
     }
     //把client_socket绑定到client_addr
     if ((bind(client_socket_id, (struct sockaddr*) &client_addr,
               sizeof(client_addr))) == -1) {
-        fprintf(stderr,"绑定client_addr到client_socket出错!\n");
-        return -1;
+        error("绑定client_addr到client_socket出错!\n");
+        return fail;
     }
     return client_socket_id;
 }
@@ -58,12 +59,12 @@ int sb_init_sockaddr_in(const char *addr, struct sockaddr_in *sock_addr, int por
         sock_addr->sin_port = htons(0);
     if (addr != NULL) {
         if (inet_pton(PF_INET, addr, &sock_addr->sin_addr) <= 0) {
-            fprintf(stderr,"inet_pton出错!\n");
-            return -1;
+            error("inet_pton出错!\n");
+            return fail;
         }
     } else
         sock_addr->sin_addr.s_addr = htonl(INADDR_ANY); //分配本机地址
-    return 1;
+    return success;
 }
 
 int sb_set_socket_noblock(int socket_id) {

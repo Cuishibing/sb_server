@@ -30,4 +30,10 @@ int sb_start_server();
 
 sb_server* sb_get_server();
 
+#define error(message) fprintf(stderr,(message))
+#define info(message) fprintf(stdout,(message))
+
+#define success 1
+#define fail 0
+
 #endif //SB_SERVER_SB_SERVER_H

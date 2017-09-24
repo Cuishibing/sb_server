@@ -3,10 +3,11 @@
 //
 
 #include <sb_request.h>
+#include <sb_server.h>
 
 int sb_init_request(sb_request *request){
     if(request == NULL){
-        return 0;
+        return fail;
     }
     return sb_init_key_value(&request->request_data)
             && sb_init_key_value(&request->attribute_data);
