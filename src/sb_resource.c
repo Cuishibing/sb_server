@@ -46,11 +46,15 @@ sb_resource* init_resource(const char* path,const char* name){
     return result;
 }
 
-sb_resource* sb_get_resource(const char* root_path,const char* name){
+sb_resource* sb_get_resource(const char* name){
+    sb_server *server = sb_get_server();
+    const char *root_path = sb_get_context_property(server->context,ROOT_PATH);
+
     if(root_path == NULL || name == NULL){
         error("bad resource name and path!\n");
         return NULL;
     }
+
     sb_element element;
     if(sb_resource_cache != NULL){
         size_t length_root_path = strlen(root_path);
@@ -78,7 +82,7 @@ sb_resource* sb_get_resource(const char* root_path,const char* name){
             return NULL;
         }else{
             if(success == sb_init_map(sb_resource_cache)){
-                return sb_get_resource(root_path,name);
+                return sb_get_resource(name);
             }else{
                 error("初始化map失败!\n");
                 return NULL;

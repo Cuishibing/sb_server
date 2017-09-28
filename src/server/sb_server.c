@@ -9,6 +9,7 @@
 #include <sb_read_worker.h>
 #include <sb_handle_worker.h>
 #include <unistd.h>
+#include <sb_write_worker.h>
 #include "sb_connection.h"
 
 int sb_init_server(const sb_server_context *context, int port){
@@ -71,6 +72,9 @@ int sb_init_server(const sb_server_context *context, int port){
 
         sb_handler_worker *handler_worker = (sb_handler_worker*)malloc(sizeof(sb_handler_worker));
         sb_init_handle_worker(handler_worker);
+
+        sb_write_worker *write_worker = (sb_write_worker*)malloc(sizeof(sb_write_worker));
+        sb_init_write_worker(write_worker);
         return success;
 
     }

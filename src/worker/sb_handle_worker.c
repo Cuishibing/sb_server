@@ -10,6 +10,7 @@
 #include <sb_request_process_filter.h>
 #include <sb_request.h>
 #include <sb_server.h>
+#include <sb_client.h>
 
 int sb_init_handle_worker(sb_handler_worker *handle_worker){
     if(handle_worker == NULL || run == NULL){
@@ -79,26 +80,19 @@ static void* run (void *args){
         sb_arraylist *request_process_filters = sb_get_request_process_filters();
         if(request_process_filters != NULL){
             sb_element element;
-            sb_request *request = (sb_request*)malloc(sizeof(sb_request));
-            if(request == NULL){
-                error("内存不足!\n");
-                return NULL;
-            }
-            sb_init_request(request);
             FILTER;
             void* args = NULL;
             if(request_process_filters->length > 0){
                 sb_get_arraylist(request_process_filters,0,&element);
                 filter = element.value;
-                args = filter(current_client,request,NULL);
+                args = filter(current_client,current_client->request,NULL);
             }
             for(int i=1;i<request_process_filters->length;i++){
                 sb_get_arraylist(request_process_filters,i,&element);
                 filter = element.value;
                 if(filter != NULL)
-                    args = filter(current_client,request,args);
+                    args = filter(current_client,current_client->request,args);
             }
-
         }else{
             error("request process filters is not init！\n");
             return NULL;

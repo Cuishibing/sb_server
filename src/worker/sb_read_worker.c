@@ -73,12 +73,12 @@ static void* run (void *args){
         int len = 0;
         do{
             len = read(current_client->socket_fd,thread_holder->buffer,buffer_length);
-            if(fail == sb_put_data_cache(current_client->request_data,thread_holder->buffer)){
+            if(fail == sb_put_data_cache(current_client->data_cache,thread_holder->buffer)){
                 error("store data error!\n");
                 return NULL;
             }
         }while(len != -1 && len != 0);
-        //fprintf(stderr,"%d    %s",current_client->socket_fd,current_client->request_data->data_poll);
+        //fprintf(stderr,"%d    %s",current_client->socket_fd,current_client->data_cache->data_poll);
         sb_add_handle_event(current_client);
     }
     return NULL;

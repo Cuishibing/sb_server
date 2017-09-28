@@ -17,6 +17,6 @@ typedef struct {
     sb_data_cache data;
 }sb_resource;
 
-sb_resource* sb_get_resource(const char* root_path,const char* name);
+sb_resource* sb_get_resource(const char* name);
 
 #endif //SB_SERVER_SB_RESOURCE_H

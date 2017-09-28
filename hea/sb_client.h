@@ -6,7 +6,10 @@
 #define SB_SERVER_SB_CLIENT_H
 
 #include <time.h>
+#include <stdlib.h>
 #include "sb_data_cache.h"
+#include "sb_request.h"
+
 typedef enum{
     INITED,//初始化完毕
     READING,//正在读取请求
@@ -19,8 +22,13 @@ typedef struct {
     int socket_fd;
     time_t *time_stamp;//时间戳
     clienter_status status;
-    sb_data_cache *request_data;
+    sb_data_cache *data_cache;
+    sb_request *request;
 }sb_client;
+
+sb_client* clients[100];
+
+sb_client* sb_get_client(int socket);
 
 int sb_init_client(sb_client *client, int socket);
 

@@ -10,6 +10,8 @@
 #include <sb_client.h>
 #include <stdlib.h>
 #include <sb_read_worker.h>
+#include <sb_data_cache.h>
+#include <sb_write_worker.h>
 #include "sb_dispatcher.h"
 
 int sb_start_dispatcher(){
@@ -54,18 +56,23 @@ int sb_start_dispatcher(){
             }else{
                 switch (server->events[i].events){
                     case EPOLLIN:{//可读
-                        //TODO:记录连接的clienter，并加入到读线程中
-                        sb_client *client = (sb_client*)malloc(sizeof(sb_client));
+                        sb_client *client = sb_get_client(server->events[i].data.fd);
                         if(client == NULL){
-                            error("内存不足!\n");
-                            return fail;
-                        }else{
+                            client = (sb_client*)malloc(sizeof(sb_client));
+                            if(client == NULL){
+                                error("内存不足!\n");
+                                return fail;
+                            }
                             sb_init_client(client,server->events[i].data.fd);
-                            sb_add_read_event(client);
                         }
+                        sb_add_read_event(client);
                     }break;
                     case EPOLLOUT:{//可写
-
+                        sb_client *client = sb_get_client(server->events[i].data.fd);
+                        if(client != NULL){
+                            //fprintf(stderr,client->data_cache->data_poll);
+                            sb_add_write_event(client);
+                        }
                     }break;
                 }
             }
@@ -78,6 +85,15 @@ int sb_add_epoll_event(int fd,struct epoll_event *ev){
     sb_server *server = sb_get_server();
     if (epoll_ctl(server->epoll_fd, EPOLL_CTL_ADD, fd,ev) == -1){
         error("注册epoll事件失败!\n");
+        return fail;
+    }
+    return success;
+}
+
+int sb_mod_epoll_event(int fd, struct epoll_event *ev){
+    sb_server *server = sb_get_server();
+    if (epoll_ctl(server->epoll_fd, EPOLL_CTL_MOD, fd,ev) == -1){
+        error("改变epoll事件失败!\n");
         return fail;
     }
     return success;

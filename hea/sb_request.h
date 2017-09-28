@@ -14,12 +14,12 @@ typedef struct {
 
 int sb_init_request(sb_request *request);
 
-char* sb_get_request_parameter(const sb_request *request, const char *name);
+void* sb_get_request_parameter(const sb_request *request, const char *name);
 
-int sb_set_request_parameter(const sb_request *request, const char *name,const char *value);
+int sb_set_request_parameter(const sb_request *request, const char *name,const void *value);
 
-int sb_set_request_attribute(const sb_request *request, const char *name, const char *value);
+int sb_set_request_attribute(const sb_request *request, const char *name, const void *value);
 
-char* sb_get_request_attribute(const sb_request *request,const char *name);
+void* sb_get_request_attribute(const sb_request *request,const char *name);
 
 #endif //SB_SERVER_SB_REQUEST_H

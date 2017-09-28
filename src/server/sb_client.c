@@ -23,14 +23,20 @@ int sb_init_client(sb_client *client, int socket){
         error("client is null!");
         return fail;
     }
+    clients[client->socket_fd] = client;
     if(sb_touch_client(client, INITED) == fail){
         return fail;
     }
     client->socket_fd = socket;
-    client->request_data = (sb_data_cache*)malloc(sizeof(sb_data_cache));
-    if(client->request_data == NULL){
+    client->data_cache = (sb_data_cache*)malloc(sizeof(sb_data_cache));
+    client->request = (sb_request*)malloc(sizeof(sb_request));
+    if(client->data_cache == NULL || client->request == NULL){
         error("内存不足!");
         return fail;
     }
-    return sb_init_data_cache(client->request_data);
+    return sb_init_data_cache(client->data_cache) && sb_init_request(client->request);
+}
+
+sb_client* sb_get_client(int socket){
+    return clients[socket];
 }

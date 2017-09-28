@@ -41,7 +41,7 @@ int sb_put_data_cache(sb_data_cache *cache,char *buffer){
         return fail;
     }
     size_t buffer_len = strlen(buffer);
-    while(cache->length + buffer_len > cache->size){//需要扩展
+    while(cache->length + buffer_len >= cache->size){//需要扩展
         if(fail == expand_cache_size(cache)){
             return fail;
         }
@@ -50,6 +50,7 @@ int sb_put_data_cache(sb_data_cache *cache,char *buffer){
     if(start_point != NULL){
         memcpy(start_point,buffer,buffer_len);
         cache->length += buffer_len;
+        cache->data_poll[cache->length] = '\0';
     }else{
         return fail;
     }
@@ -74,8 +75,9 @@ int sb_trim_data_cache(sb_data_cache *cache){
     if(cache == NULL){
         return fail;
     }
-    cache->size = cache->length;
+    cache->size = cache->length + 1;
     cache->data_poll = (char*)realloc(cache->data_poll,cache->size);
+    cache->data_poll[cache->length] = '\0';
     if(cache->data_poll == NULL){
         error("trim data_cache失败!\n");
         return fail;
