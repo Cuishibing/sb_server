@@ -40,3 +40,9 @@ int sb_init_client(sb_client *client, int socket){
 sb_client* sb_get_client(int socket){
     return clients[socket];
 }
+
+void sb_remove_client(sb_client *client){
+    /* TODO:
+     * release client's resources.(request object,data cache e.g)
+     * */
+}

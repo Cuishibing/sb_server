@@ -68,6 +68,7 @@ sb_resource* sb_get_resource(const char* name){
             if(resource == NULL){
                 return NULL;
             }else{
+                //缓存资源
                 element.value = resource;
                 sb_insert_map(sb_resource_cache,resource_path,(length_name + length_root_path),element);
                 return resource;

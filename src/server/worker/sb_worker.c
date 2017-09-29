@@ -6,7 +6,6 @@
 #include <sb_worker.h>
 #include <stdio.h>
 #include <sb_server.h>
-#include "sb_worker.h"
 
 int sb_init_worker(sb_worker *worker,pthread_attr_t *attr,void*(*run)(void*),void *args){
     if(worker == NULL || run == NULL){

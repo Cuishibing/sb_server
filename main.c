@@ -1,20 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <sb_data_cache.h>
-#include <pthread.h>
 #include <sb_read_worker.h>
-#include <sb_worker.h>
-#include <sb_key_value.h>
-#include <sb_request.h>
-#include <sb_client.h>
 #include <sb_request_process_filter.h>
-#include <sb_resource.h>
 #include <sb_http.h>
 #include "sb_server_context.h"
 #include "sb_server.h"
-#include "sb_read_worker.h"
-#include "sb_key_value.h"
 
 void* first_filter(sb_client *client, sb_request *request, void *args){
     fprintf(stderr,"%d\t%s",client->socket_fd,client->data_cache->data_poll);

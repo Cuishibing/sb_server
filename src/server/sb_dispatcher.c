@@ -98,3 +98,12 @@ int sb_mod_epoll_event(int fd, struct epoll_event *ev){
     }
     return success;
 }
+
+int sb_remove_epoll_event(int fd,struct epoll_event *ev){
+    sb_server *server = sb_get_server();
+    if (epoll_ctl(server->epoll_fd, EPOLL_CTL_DEL, fd,ev) == -1){
+        error("改变epoll事件失败!\n");
+        return fail;
+    }
+    return success;
+}

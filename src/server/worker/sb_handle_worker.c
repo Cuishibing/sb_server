@@ -4,13 +4,10 @@
 
 
 #include <sb_handle_worker.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
 #include <sb_request_process_filter.h>
-#include <sb_request.h>
 #include <sb_server.h>
-#include <sb_client.h>
 
 int sb_init_handle_worker(sb_handler_worker *handle_worker){
     if(handle_worker == NULL || run == NULL){

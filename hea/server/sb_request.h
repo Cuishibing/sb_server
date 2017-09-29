@@ -8,8 +8,8 @@
 #include "sb_key_value.h"
 
 typedef struct {
-    sb_key_value request_data;//store request parameters.
-    sb_key_value attribute_data;//用于下一步构建响应.
+    sb_key_value request_data;//存放请求的各种参数
+    sb_key_value attribute_data;//存放请求处理后输出的信息，用于下一步构建响应.
 }sb_request;
 
 int sb_init_request(sb_request *request);

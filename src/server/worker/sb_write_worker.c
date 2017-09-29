@@ -3,15 +3,11 @@
 //
 
 #include <sb_server.h>
-#include <stdio.h>
 #include <pthread.h>
 #include <sb_write_worker.h>
-#include <sb_read_worker.h>
 #include <sys/socket.h>
-#include <sb_client.h>
-#include <sb_data_cache.h>
 #include <unistd.h>
-#include "sb_write_worker.h"
+#include <stdio.h>
 
 int sb_init_write_worker(sb_write_worker *write_worker){
     if(write_worker == NULL || run == NULL){
@@ -68,6 +64,7 @@ static void* run (void *args){
 
         //把数据写入后就关闭socket
         close(current_client->socket_fd);
+        sb_remove_client(current_client);
     }
 }
 

@@ -30,6 +30,8 @@ sb_client* clients[100];
 
 sb_client* sb_get_client(int socket);
 
+void sb_remove_client(sb_client *client);
+
 int sb_init_client(sb_client *client, int socket);
 
 int sb_touch_client(sb_client *client, clienter_status status);
