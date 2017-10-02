@@ -24,7 +24,7 @@ aux_source_directory(./src/http/ SOURCE_FILES)
 aux_source_directory(./src/server/ SOURCE_FILES)
 aux_source_directory(./src/server/client/ SOURCE_FILES)
 aux_source_directory(./src/server/worker/ SOURCE_FILES)
-
+aux_source_directory(./src/server/filter_chain/ SOURCE_FILES)
 
 
 add_executable(sb_server ${SOURCE_FILES})

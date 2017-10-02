@@ -18,9 +18,9 @@ int sb_init_key_value(sb_key_value *key_value);
 int sb_put_key_value(const sb_key_value *key_value,const char *key, const void *value);
 
 /*
- * delete value by key.
- * not release the key and value.
- * */
+ * 根据key删除value，不会释放key和value
+ * 调用者需要手动释放内存以免出现内存泄漏
+ * * */
 int sb_remove_key_value(const sb_key_value *key_value,const char *key);
 
 void *sb_get_key_value(const sb_key_value *key_value,const char *key);

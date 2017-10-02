@@ -35,6 +35,7 @@ sb_resource* init_resource(const char* path,const char* name){
     size_t length = 0;
     length = fread(buffer,sizeof(char),BUFFER_SIZE - 1,resource_file);
     while(length != 0 && length != -1){
+        buffer[length] = '\0';
         if(success == sb_put_data_cache(&result->data,buffer)){
             length = fread(buffer,sizeof(char),BUFFER_SIZE - 1,resource_file);
         }else{
@@ -59,9 +60,9 @@ sb_resource* sb_get_resource(const char* name){
     if(sb_resource_cache != NULL){
         size_t length_root_path = strlen(root_path);
         size_t length_name = strlen(name);
-        char *resource_path = (char*)malloc(length_name + length_root_path + 1);
-        char *temp = strcat(resource_path,root_path);
-        strcat(temp,name);
+        char *resource_path = (char*)calloc(length_name + length_root_path + 1,sizeof(char));
+        strcat(resource_path,root_path);
+        strcat(resource_path,name);
         if(fail == sb_get_map(sb_resource_cache,resource_path,(length_name + length_root_path),&element)){
             //还没有缓存
             sb_resource* resource = init_resource(resource_path,name);
@@ -74,6 +75,7 @@ sb_resource* sb_get_resource(const char* name){
                 return resource;
             }
         }else{
+            free(resource_path);
             return (sb_resource*)element.value;
         }
     }else{

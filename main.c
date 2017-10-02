@@ -1,22 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sb_data_cache.h>
-#include <sb_read_worker.h>
-#include <sb_request_process_filter.h>
-#include <sb_http.h>
+
+#include "sb_http.h"
 #include "sb_server_context.h"
 #include "sb_server.h"
-
-void* first_filter(sb_client *client, sb_request *request, void *args){
-    fprintf(stderr,"%d\t%s",client->socket_fd,client->data_cache->data_poll);
-    return NULL;
-}
-
-void set_filters(){
-    sb_arraylist *filters = (sb_arraylist*)malloc(sizeof(sb_arraylist));
-    sb_set_request_process_filters(filters);
-    sb_add_method_req_process_filters(first_filter);
-}
 
 int main() {
     sb_server_context context;
@@ -29,9 +14,16 @@ int main() {
 
     return sb_start_server();
 
-//    sb_resource *properties = sb_get_resource("./","Makefile");
-//    sb_resource *second_properties = sb_get_resource("./","Makefile");
-//    fprintf(stderr,"%s",second_properties->data.data_poll);
+
+//    sb_server_context context;
+//    sb_init_server_context(&context);
+//    sb_put_context_property(&context,ROOT_PATH,"/home/cui/Desktop/server_root/");
+//
+//    sb_init_server(&context,8080);
+//    sb_resource *properties = sb_get_resource("index.html");
+//    sb_resource *seconde_pro = sb_get_resource("index.html");
+//    sb_resource *thrid_pro = sb_get_resource("index.html");
+//    fprintf(stderr,"%s",thrid_pro->data.data_poll);
 //
 //    sb_data_cache cache;
 //    sb_init_data_cache(&cache);

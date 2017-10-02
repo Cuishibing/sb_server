@@ -14,11 +14,15 @@
 
 int sb_init_http_filters();
 
-void* sb_parse_http_start(sb_client *client,sb_request *request,void *args);
+void* sb_parse_http_start(sb_client *client,void *args);
 
-void* sb_parse_http_head(sb_client *client,sb_request *request,void *args);
+void* sb_parse_http_head(sb_client *client,void *args);
 
-void* sb_parse_http_body(sb_client *client,sb_request *request,void *args);
+void* sb_parse_http_body(sb_client *client,void *args);
+
+void sb_print_http_success_start(sb_client *client,int code,const char *reason);
+
+void sb_print_http_head(sb_client *client);
 
 static const char *REQUEST_METHOD = "request_method";
 
