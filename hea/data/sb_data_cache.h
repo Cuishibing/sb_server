@@ -19,10 +19,12 @@ int sb_init_data_cache(sb_data_cache *cache);
 
 static int expand_cache_size(sb_data_cache *cache);
 
-int sb_put_data_cache(sb_data_cache *cache,char *buffer);
+int sb_put_data_cache(sb_data_cache *cache,const char *buffer);
 
 int sb_clear_data_cache(sb_data_cache *cache);
 
 int sb_trim_data_cache(sb_data_cache *cache);
+
+int sb_free_data_cache(sb_data_cache *data_cache);
 
 #endif //SB_SERVER_SB_DATA_CACHE_H

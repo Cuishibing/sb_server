@@ -4,14 +4,15 @@
 
 #include <stdio.h>
 #include <pthread.h>
-#include <server/filter_chain/sb_before_action_filter.h>
-#include <server/client/sb_client.h>
+#include <server/filter_chain/sb_response_build_filter.h>
 #include <http/sb_http.h>
-#include <data/sb_resource.h>
-#include <data/sb_data_cache.h>
-#include "filter_chain/sb_request_parse_filter.h"
+#include <data/sb_static_resource.h>
+#include <server/sb_dispatcher.h>
+#include <server/client/sb_client.h>
 #include "sb_server.h"
 #include "sb_handle_worker.h"
+
+
 
 int sb_init_handle_worker(sb_handler_worker *handle_worker){
     if(handle_worker == NULL || run == NULL){
@@ -59,66 +60,6 @@ int sb_add_handle_event(sb_client *client){
     }else return fail;
 }
 
-/*
- *把请求交给过滤器来处理(before_action_filter)
- * */
-int put_request_before_action_filter(sb_client *client){
-    if(client == NULL){
-        return fail;
-    }
-    sb_filter_chain *before_action_filter = sb_get_before_action_filters();
-    if(before_action_filter != NULL){
-        sb_element element;
-        void *result_arg = NULL;
-        for(int i=0;i<before_action_filter->filter_chain.length;i++){
-            sb_get_arraylist(&before_action_filter->filter_chain,i,&element);
-            FILTER = element.value;
-            result_arg = filter(client,result_arg);
-        }
-        return success;
-    }
-    return fail;
-}
-
-/*
- * 把请求给请求解析过滤器处理
- * */
-int put_request_request_parse_filter(sb_client *client){
-    if(client == NULL){
-        return fail;
-    }
-    sb_filter_chain *request_parse_filter = sb_get_request_parse_filters();
-    if(request_parse_filter != NULL){
-        sb_element element;
-        void *result_arg = NULL;
-        for(int i=0;i<request_parse_filter->filter_chain.length;i++){
-            sb_get_arraylist(&request_parse_filter->filter_chain,i,&element);
-            FILTER = element.value;
-            result_arg = filter(client,result_arg);
-        }
-        return success;
-    }
-    return fail;
-}
-
-/*
- * 根据请求的参数来寻找资源
- * 资源包括静态资源也包括函数(action)
- * 优先匹配静态资源
- * */
-int search_resource_by_target(sb_client *client){
-    char *target = sb_get_request_parameter(client->request,REQUEST_TARGET);
-    if(target != NULL){
-        sb_resource *target_resource = sb_get_resource(target);
-        if(target_resource != NULL){
-            //找到了静态资源
-            sb_clear_data_cache(client->data_cache);
-            sb_put_data_cache(client->data_cache,"200 HTTP/1.1 OK\r\n\r\n");
-            sb_put_data_cache(client->data_cache,target_resource->data.data_poll);
-        }
-    }
-}
-
 static void* run (void *args){
     sb_element client_store;
     sb_handler_worker *thread_holder = (sb_handler_worker*)args;
@@ -127,7 +68,7 @@ static void* run (void *args){
         return NULL;
     }
     /*
-     * 从事件队列中不断的取出事件(待处理的clienter)
+     * 从事件队列中不断的取出事件(待处理的client)
      * */
     while(!thread_holder->worker.is_exit){
         pthread_mutex_lock(handle_worker_event_queue_mutex);
@@ -138,13 +79,11 @@ static void* run (void *args){
 
         pthread_mutex_unlock(handle_worker_event_queue_mutex);
 
-        if(put_request_request_parse_filter(current_client)){
-            /*
-             * 在一系列请求处理方法处理完后应该返回一个sb_request对象,然后把这个request对象传递给filter处理入口函数,
-             * 再传递给action处理入口函数.
-             * */
-            put_request_before_action_filter(current_client);
-
+        if(invoke_request_builder(current_client)){
+            //search_resource_by_target(current_client);
+            struct epoll_event ev;
+            ev.events = EPOLLOUT | EPOLLET;
+            sb_mod_epoll_event(current_client->socket_fd,&ev);
         }else{
             error("请求解析错误!\n");
         }

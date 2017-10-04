@@ -1,13 +1,12 @@
 //
 // Created by cui on 17-9-28.
 //
-
-#include <sb_server.h>
-#include <pthread.h>
-#include <sb_write_worker.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+#include "sb_server.h"
+#include "sb_write_worker.h"
+#include "filter_chain/sb_response_build_filter.h"
 
 int sb_init_write_worker(sb_write_worker *write_worker){
     if(write_worker == NULL || run == NULL){
@@ -57,14 +56,10 @@ static void* run (void *args){
         }
 
         pthread_mutex_unlock(write_worker_event_queue_mutex);
-
         sb_client *current_client = (sb_client*)client_store.value;
-
-        send(current_client->socket_fd,current_client->data_cache->data_poll,current_client->data_cache->length,0);
-
-        //把数据写入后就关闭socket
+        sb_build_response(current_client);
+        //TODO:继续调用响应调用结束后的过滤器
         close(current_client->socket_fd);
-        sb_remove_client(current_client);
     }
 }
 

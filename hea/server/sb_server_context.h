@@ -2,8 +2,8 @@
 // Created by cui on 17-9-16.
 //
 
-#ifndef SB_SERVER_SB_INITSERVER_H
-#define SB_SERVER_SB_INITSERVER_H
+#ifndef SB_SERVER_SB_SERVER_CONTEXT_H
+#define SB_SERVER_SB_SERVER_CONTEXT_H
 
 #include "sb_key_value.h"
 
@@ -37,4 +37,4 @@ int sb_put_context_property(const sb_server_context *context,const char *name, c
  * */
 char* sb_get_context_property(const sb_server_context *context,const char *name);
 
-#endif //SB_SERVER_SB_INITSERVER_H
+#endif //SB_SERVER_SB_SERVER_CONTEXT_H

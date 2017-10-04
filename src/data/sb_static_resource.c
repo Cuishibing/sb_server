@@ -2,21 +2,21 @@
 // Created by cui on 17-9-23.
 //
 
-#include <sb_resource.h>
+#include <sb_static_resource.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sb_server.h>
 
-sb_resource* init_resource(const char* path,const char* name){
+sb_static_resource* init_static_resource(const char *path, const char *name){
     size_t length_name = strlen(name);
     FILE *resource_file = fopen(path,"r");
     if(resource_file == NULL){
         error("资源打开失败!\n");
         return NULL;
     }
-    sb_resource *result = (sb_resource*)malloc(sizeof(sb_resource));
+    sb_static_resource *result = (sb_static_resource*)malloc(sizeof(sb_static_resource));
     if(result == NULL){
         error("内存不足!\n");
         return NULL;
@@ -47,7 +47,7 @@ sb_resource* init_resource(const char* path,const char* name){
     return result;
 }
 
-sb_resource* sb_get_resource(const char* name){
+sb_static_resource* sb_get_static_resource(const char *name){
     sb_server *server = sb_get_server();
     const char *root_path = sb_get_context_property(server->context,ROOT_PATH);
 
@@ -65,7 +65,7 @@ sb_resource* sb_get_resource(const char* name){
         strcat(resource_path,name);
         if(fail == sb_get_map(sb_resource_cache,resource_path,(length_name + length_root_path),&element)){
             //还没有缓存
-            sb_resource* resource = init_resource(resource_path,name);
+            sb_static_resource* resource = init_static_resource(resource_path, name);
             if(resource == NULL){
                 return NULL;
             }else{
@@ -76,7 +76,7 @@ sb_resource* sb_get_resource(const char* name){
             }
         }else{
             free(resource_path);
-            return (sb_resource*)element.value;
+            return (sb_static_resource*)element.value;
         }
     }else{
         sb_resource_cache = (sb_map*)malloc(sizeof(sb_map));
@@ -85,7 +85,7 @@ sb_resource* sb_get_resource(const char* name){
             return NULL;
         }else{
             if(success == sb_init_map(sb_resource_cache)){
-                return sb_get_resource(name);
+                return sb_get_static_resource(name);
             }else{
                 error("初始化map失败!\n");
                 return NULL;

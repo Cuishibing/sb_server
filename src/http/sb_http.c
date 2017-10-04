@@ -4,19 +4,23 @@
 
 #include <memory.h>
 #include <stdio.h>
-#include <server/filter_chain/sb_before_action_filter.h>
-#include <server/filter_chain/sb_filter_chain.h>
-#include "filter_chain/sb_request_parse_filter.h"
-#include "sb_server.h"
-#include "sb_resource.h"
-#include "sb_dispatcher.h"
+#include <server/filter_chain/sb_response_build_filter.h>
+#include <assert.h>
+#include <sys/socket.h>
+#include <server/sb_server.h>
 #include "sb_http.h"
 
+void sb_print_http_start(sb_client *client,int code,const char *reason);
+
+void sb_print_http_head(sb_client *client,const char *head_name,const char *head_value);
+void sb_print_http_head_int(sb_client *client,const char *head_name,const int head_value);
+void sb_print_http_body(sb_client *client,sb_static_resource *resource);
+
 /*
- * 解析GET请求中的参数(跟在URL后面的)
+ * 解析请求中的参数(跟在URL后面的)
  * */
-void parse_get_request_parameters(sb_request *request){
-    const char *url = sb_get_key_value(&request->request_data,REQUEST_URL);
+void parse_request_url_parameters(sb_request *request){
+    const char *url = sb_get_request_parameter(request,REQUEST_URL);
     if(url != NULL){
         char *first_cursor = strstr(url,"?");
         if(first_cursor != NULL){
@@ -33,7 +37,7 @@ void parse_get_request_parameters(sb_request *request){
             char *middle_cursor = NULL;
             char *last_cursor = NULL;
             if(first_cursor == NULL){
-                //没有参数
+                //没有参数了
                 break;
             }else{
                 first_cursor = first_cursor + 1;
@@ -102,7 +106,7 @@ void* sb_parse_http_start(sb_client *client, void *args){
     strncpy(http_version,first_cursor,second_cursor - first_cursor);
     sb_set_request_parameter(client->request,REQUEST_VERSION,http_version);
 
-    parse_get_request_parameters(client->request);
+    parse_request_url_parameters(client->request);
 
     return second_cursor + 2;
 }
@@ -164,36 +168,71 @@ void* sb_parse_http_head(sb_client *client,void *args){
  * 如果是multipart/form-data，要得到boundary进行解析参数
  * */
 void* sb_parse_http_body(sb_client *client,void *args){
-    char *first_cursor = (char*)args;
+    //char *first_cursor = (char*)args;
 
     const char *request_method = sb_get_request_parameter(client->request,REQUEST_METHOD);
     if(strcmp(request_method,"GET") == 0){
-        //这是一个GET请求
-//        const char *target = sb_get_request_parameter(client->request,REQUEST_TARGET);
-//        sb_resource *resource = sb_get_resource(target);
-//        if(resource != NULL){
-//            sb_clear_data_cache(client->data_cache);
-//            sb_put_data_cache(client->data_cache,"HTTP/1.1 200 OK\r\n\r\n");
-//            sb_put_data_cache(client->data_cache,resource->data.data_poll);
-//            sb_trim_data_cache(client->data_cache);
-//            //注册写事件
-//            struct epoll_event ev;
-//            ev.events = EPOLLOUT | EPOLLET;
-//            sb_mod_epoll_event(client->socket_fd, &ev);
-//        }else{
-//            error("error！");
-//        }
+        //这是一个GET请求,不用进行下一步的解析过程
         return client;
     }
     return client;
 }
 
 int sb_init_http_filters(){
-    if(sb_init_request_parse_filters()){
-        sb_add_method_req_parse_filters(sb_parse_http_start);
-        sb_add_method_req_parse_filters(sb_parse_http_head);
-        sb_add_method_req_parse_filters(sb_parse_http_body);
+    if(sb_init_request_builder()&& sb_init_response_builder()){
+        sb_add_filter_request_builder(sb_parse_http_start);
+        sb_add_filter_request_builder(sb_parse_http_head);
+        sb_add_filter_request_builder(sb_parse_http_body);
+
+        sb_add_filter_success_response_builder(sb_build_http_success_response);
         return success;
     }
     return fail;
+}
+
+void* sb_build_http_success_response(sb_client *client,void *args){
+    sb_static_resource *resource = (sb_static_resource*)args;
+    sb_print_http_start(client,200,"OK");
+    sb_print_http_head(client,"Content-Type","text/html");//这里应该根据具体情况设定
+    if(resource == NULL){
+
+    }else{
+        sb_print_http_head_int(client,"Content-Length",resource->data.length);
+        send(client->socket_fd,"\r\n",2,0);
+        send(client->socket_fd,resource->data.data_poll,resource->data.length,0);
+        send(client->socket_fd,"\r\n",2,0);
+    }
+    return NULL;
+}
+
+void sb_print_http_start(sb_client *client,int code,const char *reason){
+    assert(client!=NULL);
+    const char *http_version = sb_get_request_parameter(client->request,REQUEST_VERSION);
+    char str_code[11];
+    memset(str_code,'\0',11);
+    sprintf(str_code,"%d",code);
+    send(client->socket_fd,http_version,strlen(http_version),0);
+    send(client->socket_fd," ",1,0);
+    send(client->socket_fd,str_code,strlen(str_code),0);
+    send(client->socket_fd," ",1,0);
+    send(client->socket_fd,reason,strlen(reason),0);
+    send(client->socket_fd,"\r\n",4,0);
+}
+
+void sb_print_http_head(sb_client *client,const char *head_name,const char *head_value){
+    send(client->socket_fd,head_name,strlen(head_name),0);
+    send(client->socket_fd,": ",2,0);
+    send(client->socket_fd,head_value,strlen(head_value),0);
+    send(client->socket_fd,"\r\n",2,0);
+}
+
+void sb_print_http_head_int(sb_client *client,const char *head_name,const int head_value){
+    char str_value[11];
+    memset(str_value,'\0',11);
+    sprintf(str_value,"%d",head_value);
+    sb_print_http_head(client,head_name,str_value);
+}
+
+void sb_print_http_body(sb_client *client,sb_static_resource *resource){
+
 }

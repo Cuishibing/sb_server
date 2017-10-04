@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <memory.h>
 #include <sb_server.h>
+#include <data/sb_data_cache.h>
 #include "sb_data_cache.h"
 
 int sb_init_data_cache(sb_data_cache *cache){
@@ -26,7 +27,7 @@ int sb_init_data_cache(sb_data_cache *cache){
 
 static int expand_cache_size(sb_data_cache *cache){
     assert(cache != NULL);
-    size_t new_size = cache->size + cache->size / 2;
+    size_t new_size = cache->size + cache->size / 4;
     cache->data_poll = realloc(cache->data_poll,new_size);
     if(cache->data_poll == NULL){
         error("内存不足!\n");
@@ -36,7 +37,7 @@ static int expand_cache_size(sb_data_cache *cache){
     return success;
 }
 
-int sb_put_data_cache(sb_data_cache *cache,char *buffer){
+int sb_put_data_cache(sb_data_cache *cache,const char *buffer){
     if(cache == NULL || buffer == NULL){
         return fail;
     }
@@ -82,5 +83,10 @@ int sb_trim_data_cache(sb_data_cache *cache){
         error("trim data_cache失败!\n");
         return fail;
     }
+    return success;
+}
+
+int sb_free_data_cache(sb_data_cache *data_cache){
+    free(data_cache->data_poll);
     return success;
 }

@@ -8,7 +8,8 @@
 #include "sb_client.h"
 #include "sb_request.h"
 
-/*
+/**
+ * 这部分并不是sb_server中的内容,在sb_server的基础上实现HTTP服务器需要提供相应的请求解析和响应构建模块
  * 定义http协议的解析和响应的构建
  * */
 
@@ -20,15 +21,11 @@ void* sb_parse_http_head(sb_client *client,void *args);
 
 void* sb_parse_http_body(sb_client *client,void *args);
 
-void sb_print_http_success_start(sb_client *client,int code,const char *reason);
-
-void sb_print_http_head(sb_client *client);
+void* sb_build_http_success_response(sb_client *client,void *args);
 
 static const char *REQUEST_METHOD = "request_method";
 
 static const char *REQUEST_URL = "request_url";
-
-static const char *REQUEST_TARGET = "request_target";
 
 static const char *REQUEST_VERSION = "request_version";
 

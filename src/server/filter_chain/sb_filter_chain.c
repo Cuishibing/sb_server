@@ -18,3 +18,16 @@ int sb_add_filter(sb_filter_chain *filter_chain,FILTER){
 int sb_init_filter_chain(sb_filter_chain *filter_chain){
     return sb_init_arraylist(&filter_chain->filter_chain,10);
 }
+
+void* sb_invoke_filter_chain(sb_filter_chain *filter_chain,sb_client *client,void* arg){
+    if(filter_chain == NULL)
+        return NULL;
+    sb_element element;
+    FILTER;
+    for(int i=0;i<filter_chain->filter_chain.length;i++){
+        sb_get_arraylist(&filter_chain->filter_chain,i,&element);
+        filter = element.value;
+        arg = filter(client,arg);
+    }
+    return arg;
+}
