@@ -62,8 +62,11 @@ void sb_build_response(sb_client *client){
         if(target_resource != NULL){
             //找到了静态资源
             invoke_success_response_builder(client, target_resource);
+            return;
         }else{
-            //TODO:继续找动态资源,动态资源最后也可能返回一个静态资源
+            //TODO:继续找动态资源,动态资源
+            invoke_success_response_builder(client, target_resource);
+            return;
         }
     }
 }

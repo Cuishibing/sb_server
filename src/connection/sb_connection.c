@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <sb_server.h>
+#include <unistd.h>
 #include "sb_connection.h"
 int sb_init_server_socket(int port,const char *addr) {
     int server_socket_id = -1;

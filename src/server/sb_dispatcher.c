@@ -63,8 +63,11 @@ int sb_start_dispatcher(){
                                 error("内存不足!\n");
                                 return fail;
                             }
-                            sb_init_client(client,server->events[i].data.fd);
+                            if(!sb_init_client(client,server->events[i].data.fd)){
+                                return fail;
+                            }
                         }
+
                         sb_add_read_event(client);
                     }break;
                     case EPOLLOUT:{//可写

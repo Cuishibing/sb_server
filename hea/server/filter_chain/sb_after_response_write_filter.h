@@ -1,0 +1,12 @@
+//
+// Created by cui on 17-10-3.
+//
+
+#ifndef SB_SERVER_SB_AFTER_RESPONSE_WRITE_FILTER_H
+#define SB_SERVER_SB_AFTER_RESPONSE_WRITE_FILTER_H
+
+/**
+ * 定义当响应构建后的过滤器
+ * */
+
+#endif //SB_SERVER_SB_AFTER_RESPONSE_WRITE_FILTER_H

@@ -8,6 +8,8 @@
 #include <assert.h>
 #include <sys/socket.h>
 #include <server/sb_server.h>
+#include <server/client/sb_client.h>
+#include <data/sb_data_cache.h>
 #include "sb_http.h"
 
 void sb_print_http_start(sb_client *client,int code,const char *reason);
@@ -195,7 +197,10 @@ void* sb_build_http_success_response(sb_client *client,void *args){
     sb_print_http_start(client,200,"OK");
     sb_print_http_head(client,"Content-Type","text/html");//这里应该根据具体情况设定
     if(resource == NULL){
-
+        sb_print_http_head_int(client,"Content-Length",client->data_cache->length);
+        send(client->socket_fd,"\r\n",2,0);
+        send(client->socket_fd,client->data_cache->data_poll,client->data_cache->length,0);
+        send(client->socket_fd,"\r\n",2,0);
     }else{
         sb_print_http_head_int(client,"Content-Length",resource->data.length);
         send(client->socket_fd,"\r\n",2,0);

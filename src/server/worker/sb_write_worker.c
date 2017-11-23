@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <server/sb_server.h>
 #include "sb_server.h"
 #include "sb_write_worker.h"
 #include "filter_chain/sb_response_build_filter.h"
@@ -48,7 +49,7 @@ static void* run (void *args){
         error("thread_holder is null!\n");
         return NULL;
     }
-
+    sb_server *server = sb_get_server();
     while(!thread_holder->worker.is_exit){
         pthread_mutex_lock(write_worker_event_queue_mutex);
         while(fail == sb_dequeue(write_worker_event_queue,&client_store)){
@@ -59,7 +60,6 @@ static void* run (void *args){
         sb_client *current_client = (sb_client*)client_store.value;
         sb_build_response(current_client);
         //TODO:继续调用响应调用结束后的过滤器
-        close(current_client->socket_fd);
     }
 }
 

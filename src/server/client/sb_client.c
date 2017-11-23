@@ -38,6 +38,7 @@ int sb_init_client(sb_client *client, int socket){
 }
 
 sb_client* sb_get_client(int socket){
+    //TODO:未实现
     return clients[socket];
 }
 

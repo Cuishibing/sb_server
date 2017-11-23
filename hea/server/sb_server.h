@@ -17,7 +17,6 @@ typedef struct {
     long large_clienters;
     int back_log;
     int is_exit;
-
     const char *root_path;
 
 }sb_server;

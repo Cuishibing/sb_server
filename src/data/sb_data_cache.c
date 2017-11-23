@@ -16,7 +16,7 @@ int sb_init_data_cache(sb_data_cache *cache){
         return fail;
     }
     cache->length = 0;
-    cache->size = DEFAULT_SIZE;//默认是2KB
+    cache->size = DEFAULT_SIZE;
     cache->data_poll = (char*)calloc(cache->size,sizeof(char));
     if(cache->data_poll == NULL){
         error("内存不足!\n");
