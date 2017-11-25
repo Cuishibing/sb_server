@@ -10,12 +10,42 @@ int sb_add_filter(sb_filter_chain *filter_chain,FILTER){
     if(filter_chain == NULL || filter == NULL){
         return fail;
     }
+    int filter_type = filter_chain->filter_type;
+    if(filter_type != FILTER_TYPE_0){
+        if(filter_type == DEFAULT_FILTER_TYPE){
+            filter_chain->filter_type = FILTER_TYPE_0;
+        } else{
+            error("过滤器类型不符!");
+            return fail;
+        }
+    }
+    sb_element element;
+    element.value = filter;
+    return sb_insert_arraylist(&filter_chain->filter_chain,element,filter_chain->filter_chain.length);
+}
+
+int sb_add_filter_1(sb_filter_chain *filter_chain,FILTER_1){
+    if(filter_chain == NULL || filter == NULL){
+        return fail;
+    }
+    int filter_type = filter_chain->filter_type;
+    if(filter_type != FILTER_TYPE_1){
+        if(filter_type == DEFAULT_FILTER_TYPE){
+            filter_chain->filter_type = FILTER_TYPE_1;
+        } else{
+            error("过滤器类型不符!");
+            return fail;
+        }
+    }
     sb_element element;
     element.value = filter;
     return sb_insert_arraylist(&filter_chain->filter_chain,element,filter_chain->filter_chain.length);
 }
 
 int sb_init_filter_chain(sb_filter_chain *filter_chain){
+    if(filter_chain == NULL)
+        return fail;
+    filter_chain->filter_type = DEFAULT_FILTER_TYPE;
     return sb_init_arraylist(&filter_chain->filter_chain,10);
 }
 

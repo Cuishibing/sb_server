@@ -181,10 +181,10 @@ void* sb_parse_http_body(sb_client *client,void *args){
 }
 
 int sb_init_http_filters(){
-    if(sb_init_request_builder()&& sb_init_response_builder()){
-        sb_add_filter_request_builder(sb_parse_http_start);
-        sb_add_filter_request_builder(sb_parse_http_head);
-        sb_add_filter_request_builder(sb_parse_http_body);
+    if(sb_init_request_parser()&& sb_init_response_builder()){
+        sb_add_filter_request_parser(sb_parse_http_start);
+        sb_add_filter_request_parser(sb_parse_http_head);
+        sb_add_filter_request_parser(sb_parse_http_body);
 
         sb_add_filter_success_response_builder(sb_build_http_success_response);
         return success;

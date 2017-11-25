@@ -12,6 +12,10 @@
  * 这部分并不是sb_server中的内容,在sb_server的基础上实现HTTP服务器需要提供相应的请求解析模块和响应构建模块.
  * 定义http协议的解析和响应的构建
  * */
+
+/**
+ *
+ * */
 int sb_init_http_filters();
 
 void* sb_parse_http_start(sb_client *client,void *args);

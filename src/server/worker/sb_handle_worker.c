@@ -79,7 +79,7 @@ static void* run (void *args){
 
         pthread_mutex_unlock(handle_worker_event_queue_mutex);
 
-        if(invoke_request_builder(current_client)){
+        if(invoke_request_parser(current_client)){
             //search_resource_by_target(current_client);
             struct epoll_event ev;
             ev.events = EPOLLOUT | EPOLLET;
