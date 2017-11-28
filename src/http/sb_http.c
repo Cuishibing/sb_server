@@ -4,20 +4,15 @@
 
 #include <memory.h>
 #include <stdio.h>
-#include <server/filter_chain/sb_response_build_filter.h>
 #include <assert.h>
 #include <sys/socket.h>
-#include <server/sb_server.h>
-#include <server/client/sb_client.h>
-#include <data/sb_data_cache.h>
+#include <server/resource/sb_dynamic_resource.h>
+#include "sb_response_builder.h"
+#include "sb_request_parser.h"
+#include "sb_static_resource.h"
+#include "sb_server.h"
+#include "sb_client.h"
 #include "sb_http.h"
-
-void sb_print_http_start(sb_client *client,int code,const char *reason);
-
-void sb_print_http_head(sb_client *client,const char *head_name,const char *head_value);
-void sb_print_http_head_int(sb_client *client,const char *head_name,const int head_value);
-void sb_print_http_body(sb_client *client,sb_static_resource *resource);
-
 /*
  * 解析请求中的参数(跟在URL后面的)
  * */
@@ -180,34 +175,16 @@ void* sb_parse_http_body(sb_client *client,void *args){
     return client;
 }
 
-int sb_init_http_filters(){
-    if(sb_init_request_parser()&& sb_init_response_builder()){
-        sb_add_filter_request_parser(sb_parse_http_start);
-        sb_add_filter_request_parser(sb_parse_http_head);
-        sb_add_filter_request_parser(sb_parse_http_body);
-
-        sb_add_filter_success_response_builder(sb_build_http_success_response);
-        return success;
-    }
-    return fail;
-}
-
-void* sb_build_http_success_response(sb_client *client,void *args){
+void sb_build_http_success_response(sb_client *client,void *args){
     sb_static_resource *resource = (sb_static_resource*)args;
     sb_print_http_start(client,200,"OK");
     sb_print_http_head(client,"Content-Type","text/html");//这里应该根据具体情况设定
-    if(resource == NULL){
-        sb_print_http_head_int(client,"Content-Length",client->data_cache->length);
-        send(client->socket_fd,"\r\n",2,0);
-        send(client->socket_fd,client->data_cache->data_poll,client->data_cache->length,0);
-        send(client->socket_fd,"\r\n",2,0);
-    }else{
+    if(resource != NULL){
         sb_print_http_head_int(client,"Content-Length",resource->data.length);
         send(client->socket_fd,"\r\n",2,0);
         send(client->socket_fd,resource->data.data_poll,resource->data.length,0);
         send(client->socket_fd,"\r\n",2,0);
     }
-    return NULL;
 }
 
 void sb_print_http_start(sb_client *client,int code,const char *reason){
@@ -240,4 +217,31 @@ void sb_print_http_head_int(sb_client *client,const char *head_name,const int he
 
 void sb_print_http_body(sb_client *client,sb_static_resource *resource){
 
+}
+
+static int parse_request_composite(void* args){
+    sb_client *client = (sb_client*)args;
+    void* return_value = sb_parse_http_start(client,NULL);
+    return_value = sb_parse_http_head(client,return_value);
+    return_value = sb_parse_http_body(client,return_value);
+    return return_value == NULL ? fail:success;
+}
+
+static int build_response_composite(void *args,sb_resource **res){
+    sb_client *client = (sb_client*)args;
+    if((*res)->type == STATIC){
+        sb_static_resource* static_res = (sb_static_resource*)res;
+        sb_build_http_success_response(client,static_res);
+    }else{
+        sb_dynamic_resource* dynamic_resource = (sb_dynamic_resource*)res;
+        dynamic_resource->method_ptr(client);
+        sb_print_http_start(client,200,"OK");
+    }
+
+    return success;
+}
+
+void sb_register_http_model(){
+    sb_set_request_parser(parse_request_composite);
+    sb_set_response_builder(build_response_composite);
 }

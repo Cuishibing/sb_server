@@ -8,11 +8,6 @@
 #include "sb_worker.h"
 #include "sb_collection.h"
 
-static sb_queue *read_worker_event_queue = NULL;
-static pthread_mutex_t *read_worker_event_queue_mutex = NULL;
-static pthread_cond_t *read_worker_event_queue_cond = NULL;
-static size_t buffer_length = 512;
-
 typedef struct {
     sb_worker worker;
     char *buffer;

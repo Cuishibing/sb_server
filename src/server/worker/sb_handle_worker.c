@@ -4,15 +4,19 @@
 
 #include <stdio.h>
 #include <pthread.h>
-#include <server/filter_chain/sb_response_build_filter.h>
-#include <http/sb_http.h>
-#include <data/sb_static_resource.h>
-#include <server/sb_dispatcher.h>
 #include <server/client/sb_client.h>
-#include "sb_server.h"
+#include <server/sb_request.h>
+#include <data/sb_key_value.h>
+#include <data/sb_data_cache.h>
+#include <server/request_parser/sb_response_builder.h>
+#include <server/resource/sb_dynamic_resource.h>
+#include "sb_request_parser.h"
+#include "sb_dispatcher.h"
 #include "sb_handle_worker.h"
 
-
+static sb_queue *handle_worker_event_queue = NULL;
+static pthread_mutex_t *handle_worker_event_queue_mutex = NULL;
+static pthread_cond_t *handle_worker_event_queue_cond = NULL;
 
 int sb_init_handle_worker(sb_handler_worker *handle_worker){
     if(handle_worker == NULL || run == NULL){
@@ -78,14 +82,21 @@ static void* run (void *args){
         sb_client *current_client = (sb_client*)client_store.value;
 
         pthread_mutex_unlock(handle_worker_event_queue_mutex);
-
-        if(invoke_request_parser(current_client)){
-            //search_resource_by_target(current_client);
-            struct epoll_event ev;
-            ev.events = EPOLLOUT | EPOLLET;
-            sb_mod_epoll_event(current_client->socket_fd,&ev);
-        }else{
-            error("请求解析错误!\n");
+        request_parser* request_parser = sb_get_request_parser();
+        if(request_parser!=NULL&&request_parser->method_ptr!=NULL){
+            if(success == request_parser->method_ptr(current_client)){
+                //解析成功
+                const char* target = sb_get_request_parameter(current_client->request,REQUEST_TARGET);
+                sb_resource** res = sb_find_resource(target);
+                if(res != NULL){
+                    current_client->target_res = res;
+                    struct epoll_event ev;
+                    ev.events = EPOLLOUT | EPOLLET;
+                    sb_mod_epoll_event(current_client->socket_fd,&ev);
+                }
+            }else{
+                //解析失败
+            }
         }
 
     }

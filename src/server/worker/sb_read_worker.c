@@ -8,7 +8,10 @@
 #include <unistd.h>
 #include <sb_handle_worker.h>
 #include <sb_server.h>
-
+static sb_queue *read_worker_event_queue = NULL;
+static pthread_mutex_t *read_worker_event_queue_mutex = NULL;
+static pthread_cond_t *read_worker_event_queue_cond = NULL;
+static size_t buffer_length = 512;
 int sb_init_read_worker(sb_read_worker *read_worker){
     if(read_worker == NULL || run == NULL){
         return fail;
@@ -67,7 +70,7 @@ static void* run (void *args){
 
         sb_client *current_client = (sb_client*)client_store.value;
 
-        int len = 0;
+        ssize_t len = 0;
         do{
             len = read(current_client->socket_fd,thread_holder->buffer,buffer_length);
             if(fail == sb_put_data_cache(current_client->data_cache,thread_holder->buffer)){

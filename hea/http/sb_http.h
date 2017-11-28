@@ -13,18 +13,7 @@
  * 定义http协议的解析和响应的构建
  * */
 
-/**
- *
- * */
-int sb_init_http_filters();
-
-void* sb_parse_http_start(sb_client *client,void *args);
-
-void* sb_parse_http_head(sb_client *client,void *args);
-
-void* sb_parse_http_body(sb_client *client,void *args);
-
-void* sb_build_http_success_response(sb_client *client,void *args);
+void sb_register_http_model();
 
 static const char *REQUEST_METHOD = "request_method";
 

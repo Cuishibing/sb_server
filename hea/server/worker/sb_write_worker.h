@@ -8,10 +8,6 @@
 #include "sb_client.h"
 #include "sb_worker.h"
 
-static sb_queue *write_worker_event_queue = NULL;
-static pthread_mutex_t *write_worker_event_queue_mutex = NULL;
-static pthread_cond_t *write_worker_event_queue_cond = NULL;
-
 typedef struct {
     sb_worker worker;
 }sb_write_worker;

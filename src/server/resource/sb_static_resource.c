@@ -2,14 +2,18 @@
 // Created by cui on 17-9-23.
 //
 
-#include <sb_static_resource.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <sb_server.h>
+#include "sb_server.h"
+#include "sb_static_resource.h"
 
-sb_static_resource* init_static_resource(const char *path, const char *name){
+/**
+ * 一个获取本地资源类,同时能够对获取到的资源进行缓存
+ * */
+static sb_map *sb_resource_cache = NULL;
+
+sb_static_resource* new_static_resource(const char *path, const char *name){
     size_t length_name = strlen(name);
     FILE *resource_file = fopen(path,"r");
     if(resource_file == NULL){
@@ -30,6 +34,7 @@ sb_static_resource* init_static_resource(const char *path, const char *name){
             return NULL;
         }
         strcpy(result->name,name);
+        result->super = sb_new_resource(STATIC,result->name);
     }
     char buffer[BUFFER_SIZE];
     size_t length = 0;
@@ -47,12 +52,12 @@ sb_static_resource* init_static_resource(const char *path, const char *name){
     return result;
 }
 
-sb_static_resource* sb_get_static_resource(const char *name){
+sb_static_resource* sb_find_static_resource(const char *name){
     sb_server *server = sb_get_server();
     const char *root_path = sb_get_context_property(server->context,ROOT_PATH);
 
     if(root_path == NULL || name == NULL){
-        error("bad resource name and path!\n");
+        error("bad super name and path!\n");
         return NULL;
     }
 
@@ -65,7 +70,7 @@ sb_static_resource* sb_get_static_resource(const char *name){
         strcat(resource_path,name);
         if(fail == sb_get_map(sb_resource_cache,resource_path,(length_name + length_root_path),&element)){
             //还没有缓存
-            sb_static_resource* resource = init_static_resource(resource_path, name);
+            sb_static_resource* resource = new_static_resource(resource_path, name);
             if(resource == NULL){
                 return NULL;
             }else{
@@ -85,7 +90,7 @@ sb_static_resource* sb_get_static_resource(const char *name){
             return NULL;
         }else{
             if(success == sb_init_map(sb_resource_cache)){
-                return sb_get_static_resource(name);
+                return sb_find_static_resource(name);
             }else{
                 error("初始化map失败!\n");
                 return NULL;

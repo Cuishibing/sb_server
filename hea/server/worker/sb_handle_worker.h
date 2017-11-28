@@ -7,10 +7,6 @@
 
 #include "sb_worker.h"
 
-static sb_queue *handle_worker_event_queue = NULL;
-static pthread_mutex_t *handle_worker_event_queue_mutex = NULL;
-static pthread_cond_t *handle_worker_event_queue_cond = NULL;
-
 typedef struct {
     sb_worker worker;
 }sb_handler_worker;

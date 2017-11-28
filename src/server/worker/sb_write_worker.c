@@ -3,12 +3,14 @@
 //
 #include <stdio.h>
 #include <pthread.h>
-#include <unistd.h>
 #include <server/sb_server.h>
-#include "sb_server.h"
+#include <server/request_parser/sb_response_builder.h>
+#include <server/client/sb_client.h>
+#include <unistd.h>
 #include "sb_write_worker.h"
-#include "filter_chain/sb_response_build_filter.h"
-
+static sb_queue *write_worker_event_queue = NULL;
+static pthread_mutex_t *write_worker_event_queue_mutex = NULL;
+static pthread_cond_t *write_worker_event_queue_cond = NULL;
 int sb_init_write_worker(sb_write_worker *write_worker){
     if(write_worker == NULL || run == NULL){
         return fail;
@@ -49,17 +51,18 @@ static void* run (void *args){
         error("thread_holder is null!\n");
         return NULL;
     }
-    sb_server *server = sb_get_server();
     while(!thread_holder->worker.is_exit){
         pthread_mutex_lock(write_worker_event_queue_mutex);
         while(fail == sb_dequeue(write_worker_event_queue,&client_store)){
             pthread_cond_wait(write_worker_event_queue_cond,write_worker_event_queue_mutex);
         }
-
         pthread_mutex_unlock(write_worker_event_queue_mutex);
         sb_client *current_client = (sb_client*)client_store.value;
-        sb_build_response(current_client);
-        //TODO:继续调用响应调用结束后的过滤器
+        response_builder* response_builder =  sb_get_response_builder();
+        if(response_builder != NULL && response_builder->method_ptr != NULL){
+            response_builder->method_ptr(current_client,current_client->target_res);
+        }
+        close(current_client->socket_fd);
     }
 }
 

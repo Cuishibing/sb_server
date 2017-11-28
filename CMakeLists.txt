@@ -11,6 +11,8 @@ include_directories(./hea/http/)
 include_directories(./hea/server/)
 include_directories(./hea/server/client/)
 include_directories(./hea/server/worker/)
+include_directories(hea/server/resource/)
+include_directories(hea/server/request_parser/)
 
 link_directories(../sb_tools/cmake-build-debug)
 link_libraries(libsbtools)
@@ -24,7 +26,8 @@ aux_source_directory(./src/http/ SOURCE_FILES)
 aux_source_directory(./src/server/ SOURCE_FILES)
 aux_source_directory(./src/server/client/ SOURCE_FILES)
 aux_source_directory(./src/server/worker/ SOURCE_FILES)
-aux_source_directory(./src/server/filter_chain/ SOURCE_FILES)
+aux_source_directory(./src/server/resource SOURCE_FILES)
+aux_source_directory(./src/server/request_parser/ SOURCE_FILES)
 
 
 add_executable(sb_server ${SOURCE_FILES})

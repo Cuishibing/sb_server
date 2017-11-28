@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "sb_data_cache.h"
 #include "sb_request.h"
+#include "sb_resource.h"
 
 /**
  * 定义连接的状态
@@ -30,6 +31,7 @@ typedef struct {
     clienter_status status;
     sb_data_cache *data_cache;
     sb_request *request;
+    sb_resource **target_res;
 }sb_client;
 
 /**

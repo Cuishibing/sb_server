@@ -9,8 +9,7 @@ int sb_init_request(sb_request *request){
     if(request == NULL){
         return fail;
     }
-    return sb_init_key_value(&request->request_data)
-            && sb_init_key_value(&request->response_data);
+    return sb_init_key_value(&request->request_data);
 }
 
 void* sb_get_request_parameter(const sb_request *request, const char *name){
@@ -19,12 +18,4 @@ void* sb_get_request_parameter(const sb_request *request, const char *name){
 
 int sb_set_request_parameter(const sb_request *request, const char *name,const void *value){
     return sb_put_key_value(&request->request_data,name,value);
-}
-
-int sb_set_response_parameter(const sb_request *request, const char *name, const void *value){
-    return sb_put_key_value(&request->response_data,name,value);
-}
-
-void* sb_get_response_parameter(const sb_request *request, const char *name){
-    return sb_get_key_value(&request->response_data,name);
 }
