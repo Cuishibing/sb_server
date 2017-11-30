@@ -7,6 +7,7 @@
 #include <server/request_parser/sb_response_builder.h>
 #include <server/client/sb_client.h>
 #include <unistd.h>
+#include <server/sb_dispatcher.h>
 #include "sb_write_worker.h"
 static sb_queue *write_worker_event_queue = NULL;
 static pthread_mutex_t *write_worker_event_queue_mutex = NULL;
@@ -62,6 +63,11 @@ static void* run (void *args){
         if(response_builder != NULL && response_builder->method_ptr != NULL){
             response_builder->method_ptr(current_client,current_client->target_res);
         }
+
+        //此处应该释放资源,关闭连接
+        struct epoll_event ev;
+        ev.events = EPOLLOUT | EPOLLET;
+        sb_remove_epoll_event(current_client->socket_fd,&ev);
         close(current_client->socket_fd);
     }
 }
